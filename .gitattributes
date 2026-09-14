@@ -1,0 +1,25 @@
+# 저장소에 저장되는 줄바꿈을 LF로 통일한다.
+# 개발은 Windows, 운영은 Linux(ARM64) + Docker 이므로, CRLF가 섞이면
+# 셸 스크립트(#!/bin/sh)와 Dockerfile 엔트리포인트가 \r 때문에 깨진다.
+* text=auto eol=lf
+
+# Windows 전용 스크립트만 CRLF 유지
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 바이너리 — diff/변환 대상에서 제외
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.parquet binary
+*.pkl   binary
+*.joblib binary
+*.onnx  binary
+*.safetensors binary
+
+# 노트북은 diff가 지저분하므로 별도 표시 (Phase 1부터 사용)
+*.ipynb text eol=lf

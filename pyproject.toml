@@ -1,0 +1,74 @@
+[project]
+name = "jobfit"
+version = "0.1.0"
+description = "채용공고 기반 커리어 매칭"
+requires-python = ">=3.12,<3.13"
+
+dependencies = [
+    # Web
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    # DB
+    "sqlalchemy>=2.0.30",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.13",
+    # Cache / Queue
+    "redis>=5.0",
+    # Logging
+    "structlog>=24.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "httpx2>=2.12",
+    "pre-commit>=3.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jobfit"]
+
+# ---------- 도구 설정 ----------
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "N"]
+# E:pycodestyle  F:pyflakes  I:import정렬  UP:구버전문법  B:버그유발패턴  SIM:단순화  N:네이밍
+ignore = ["B008"]  # FastAPI의 Depends() 기본값 패턴 허용
+
+[tool.ruff.lint.per-file-ignores]
+# 테스트 함수명은 한글로 의도를 서술한다 (docs/05-conventions.md 5절).
+# 한글에는 대소문자 개념이 없어 pep8-naming의 N802(소문자 함수명)에 걸리므로,
+# 테스트 파일에 한해 해제한다. src/ 는 그대로 N802를 적용받는다.
+"tests/**/*.py" = ["N802"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+exclude = ["^migrations/"]
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "integration: DB/Redis 같은 외부 의존성이 필요한 테스트",
+]

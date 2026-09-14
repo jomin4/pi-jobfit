@@ -1,0 +1,37 @@
+# NOTE: Keep this file ASCII-only.
+# pre-commit reads it with the OS default encoding (cp949 on Korean Windows),
+# so non-ASCII comments break `pre-commit autoupdate` / `run`.
+# See docs/troubleshooting/TS-003-precommit-cp949.md
+
+repos:
+  # General hygiene checks. Run in isolated envs, so remote repos are fine.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: detect-private-key          # block committing private keys
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]          # guard against model/data files
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7
+    hooks:
+      - id: ruff-format
+      - id: ruff-check        # `ruff` is a legacy alias since ruff-pre-commit v0.9
+        args: [--fix]
+
+  # mypy needs the project dependencies (pydantic, sqlalchemy, ...) for type info.
+  # Running it as a remote hook would mean duplicating those deps, so we reuse
+  # the mypy installed in our own venv instead.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        pass_filenames: false           # honour files=["src"] from pyproject.toml
