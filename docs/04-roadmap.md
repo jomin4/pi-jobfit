@@ -36,13 +36,22 @@
 | 0.7 | FastAPI 헬스체크 `/health` (DB/Redis 연결 확인) | `src/jobfit/api/main.py` |
 | 0.8 | 개발 도구: ruff, mypy, pytest, pre-commit | `.pre-commit-config.yaml` |
 | 0.9 | GitHub Actions: lint → typecheck → test → docker build | `.github/workflows/ci.yml` |
-| 0.10 | Oracle Cloud 가입 + Always Free ARM 인스턴스 생성 + SSH | 서버 접속 확인 |
+| 0.10 | ~~Oracle Cloud 가입 + ARM 인스턴스~~ → **Phase 7로 연기** | — |
 
 ### DoD
-- [ ] `docker compose up -d` 후 `/health` 가 db/redis 모두 ok 반환
-- [ ] `alembic upgrade head` 성공 (빈 리비전이라도)
-- [ ] GitHub에 push → Actions 초록불
-- [ ] Oracle ARM 인스턴스에 SSH 접속 + `docker --version` 확인
+- [x] `docker compose up -d` 후 `/health` 가 db/redis 모두 ok 반환
+- [x] `alembic upgrade head` 성공 (빈 리비전이라도)
+- [x] GitHub에 push → Actions 초록불
+- [x] ~~Oracle ARM 인스턴스 SSH~~ → 연기 (아래 결정 참조)
+
+### 결정 기록 (2026-09-14)
+**배포 대상 클라우드 선정을 Phase 7로 연기한다.**
+- 이유: Oracle Always Free ARM은 `Out of host capacity` 로 확보에 수 일이 걸릴 수 있고,
+  Phase 1~6은 전부 로컬 Docker만으로 진행 가능하다. 이 작업이 일정을 막게 두지 않는다.
+- 대안이 열려 있음: Oracle / AWS Lightsail / Hetzner / 집 서버 등.
+  Phase 7 시점에 실제 리소스 사용량(임베딩 메모리, LLM 서빙 필요 여부)을 알고 나서 고르는 편이 낫다.
+- **단, 이식성 요구사항(NFR-4)은 그대로 유지한다.** 특정 클라우드에 종속되는 코드를 쓰지 않고,
+  모든 것을 컨테이너와 환경변수로 유지한다. 그래야 나중에 어디로든 옮길 수 있다.
 
 ### 학습 포인트
 컨테이너 네트워킹 / 12-factor 설정 / 마이그레이션의 의미 / CI 파이프라인 구조
