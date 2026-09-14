@@ -1,148 +1,235 @@
-# 고용24(워크넷) 채용정보 OpenAPI 조사 노트
+# 고용24(워크넷) 채용정보 OpenAPI 명세
 
-> 작업 1.1 산출물. **인증키 발급 후 개발명세서를 보고 빈칸을 채운다.**
-> 여기서 확정한 내용이 `collectors/work24.py` 와 `03-data-model.md` 의 매핑 기준이 된다.
+> 작업 1.1 산출물 · 최종 갱신 2026-09-14
+> 출처: https://www.work24.go.kr/cm/e/a/0110/selectOpenApiSvcInfo.do?fullApiSvcId=000000000000000000000000000000
+> 이 문서가 `collectors/work24.py` 와 `03-data-model.md` 매핑의 기준이다.
 
 ---
 
-## 1. 확인된 사실 (2026-09-14 조사)
+## 1. 기본 정보
 
-| 항목 | 내용 | 출처 |
+| 항목 | 내용 |
+|---|---|
+| API 명 | 한국고용정보원 워크넷 채용정보 (채용목록 / 채용상세) |
+| 포맷 | **XML (UTF-8)**, HTTP GET |
+| 인증 | `authKey` (UUID 36자) — 고용24 회원가입 + **API별 활용신청** |
+| 비용 | 무료 |
+| 라이선스 | **공공저작물 제4유형**: 출처표시 + **상업적 이용금지** + 변경금지 |
+
+### ⚠️ 엔드포인트가 두 세대 공존한다
+| 세대 | URL | 비고 |
 |---|---|---|
-| API 명 | 한국고용정보원_워크넷 채용정보 **채용목록 및 상세정보** | data.go.kr/data/3038225 |
-| 제공기관 | 한국고용정보원 | 〃 |
-| API 유형 | **LINK** (포털이 중계하지 않고 제공기관 서버를 직접 호출) | 〃 |
-| 데이터 포맷 | **XML (UTF-8)** | 〃 / work24 |
-| 프로토콜 | HTTP GET | work24 |
-| 비용 | 무료 | data.go.kr |
-| 심의 | 개발단계·운영단계 **모두 자동승인** → 즉시 발급 | data.go.kr |
-| 인증 | **인증키(authKey)** — 고용24 회원가입 후 신청 | work24 |
-| 최종 수정일 | 2025-07-21 | data.go.kr |
+| **고용24 (현행)** | `https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210*.do` | **우리가 쓸 것** |
+| 레거시 워크넷 | `https://openapi.work.go.kr/opi/opi/opia/wantedApi.do` | 아직 응답하나 **인증키 레지스트리가 별개** |
 
-### ⚠️ 라이선스 — 프로젝트 제약사항
-> **공공저작물 제4유형: 출처표시 + 상업적 이용금지 + 변경금지**
+고용24 키를 레거시 URL에 넣으면 `[002] 유효하지 않은 인증키` 가 나온다.
+**키가 틀린 게 아니라 엔드포인트가 틀린 것.** 이 프로젝트에서 실제로 30분을 썼다.
 
-- 개인 학습·포트폴리오 용도는 문제없다.
-- **수익화 불가.** 서비스로 전환하려면 데이터 소스를 교체해야 한다.
-- 공개 배포 시 **출처(한국고용정보원 워크넷)를 명시**해야 한다. → README와 API 응답에 표기 예정.
-
----
-
-## 2. 제공된다고 명시된 요청 파라미터
-
-목록 API가 받는 파라미터 (공식 설명 발췌):
-
-```
-인증키, 호출유형, 반환형식, 시작페이지, 출력건수,
-근무지역, 직종, 임금형태, 최소급여, 최대급여,
-학력, 경력, 최소경력, 최대경력, 우대조건, 역세권,
-고용형태, 근무기간, 근무형태, 기업형태, 사업자등록번호,
-강소기업여부, 일학습병행여부, 사원수, 근무편의, 자격면허,
-등록일, 키워드, 채용여부, 구인시작일, 구인종료일,
-채용구분, 정렬방식, 전공, 외국어, 컴퓨터우대, 일반우대, 근무시간
-```
-
-> 대부분 **선택 파라미터**다. 필요한 조건만 넣어도 조회된다.
-> 반환: 총건수, 시작페이지, 출력건수, **구인인증번호**, 회사 정보 등.
-> **구인인증번호**가 상세 API의 키이자 우리 `jobs.source_id` 가 될 후보다.
-
----
-
-## 3. 채울 것 — 명세서 확인 후 작성
-
-### 3.1 엔드포인트 — ⚠️ 두 세대가 공존한다 (2026-09-14 실측)
-
-**중요**: 워크넷 시절 API와 고용24 API가 **동시에 살아 있고, 인증키 체계가 다르다.**
-
-| 세대 | URL | 루트 태그 | 비고 |
-|---|---|---|---|
-| **고용24 (현행)** | `https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210L01.do` | `<GO24>` | **우리가 쓸 것.** 서비스 코드(`210L01`)가 경로에 박힘 |
-| 레거시 워크넷 | `https://openapi.work.go.kr/opi/opi/opia/wantedApi.do` | `<wantedRoot>` | 아직 응답하나 인증키 레지스트리가 별개 |
-
-- `openapi.work24.go.kr` → **연결 거부** (존재하지 않음)
-- `...callOpenApiSvcInfo210L02.do` → **404**. 서비스 코드마다 경로가 다르며 임의 추측 불가.
-  상세 조회 API의 코드는 명세서에서 확인해야 한다.
-
-> **왜 이게 중요한가**: 고용24에서 발급한 authKey를 레거시 엔드포인트에 넣으면
-> `[002] 유효하지 않은 인증키` 가 나온다. **키가 틀린 게 아니라 엔드포인트가 틀린 것**이다.
-> 실제로 이 프로젝트에서 그렇게 30분을 썼다.
-
-### 3.1b 고용24 엔드포인트 에러 메시지 — ✅ 실측
+### 에러 메시지로 원인 구분하기 (실측)
 | 응답 | 의미 |
 |---|---|
-| `authKey는 필수 입니다.` | `authKey` 파라미터 누락 |
-| `신청하신 OpenApi 서비스가 존재하지 않습니다` | **키는 인식됨.** 해당 서비스(API)에 대한 활용신청이 없거나 미승인 |
+| `<GO24><error>authKey는 필수 입니다.</error>` | 파라미터 누락 |
+| `<GO24><error>신청하신 OpenApi 서비스가 존재하지 않습니다</error>` | **키는 인식됨.** 해당 API 활용신청이 없거나 미승인 |
+| (레거시) `[002] 유효하지 않은 인증키` | 이 서버가 모르는 키 |
 
-두 메시지가 다르다는 것이 핵심 단서다 — 후자가 나오면 키는 살아 있는 것이다.
+---
 
-### 3.2 필수 파라미터 — ✅ 에러코드 역추적으로 확인
-| 파라미터명 | 한글명 | 필수 | 예시 | 비고 |
-|---|---|---|---|---|
-| `authKey` | 인증키 | ✅ | UUID 36자 | **대소문자 구분.** `authkey`로 보내면 "없음" 처리 |
-| `callTp` | 호출유형 | ✅ | `L`(목록) / `D`(상세) | |
-| `returnType` | 반환형식 | ✅ | `XML` | 생략 시 `[004]` 에러 |
-| `startPage` | 시작페이지 | ✅ | `1` | |
-| `display` | 출력건수 | ✅ | `5` | 최대값 확인 필요 |
+## 2. 엔드포인트
 
-### 3.2b 에러 코드 — ✅ 실측
-| `messageCd` | 메시지 | 의미 |
+### 2.1 채용정보 목록 — `210L01`
+```
+https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210L01.do
+  ?authKey=[인증키]&callTp=L&returnType=XML&startPage=1&display=10
+```
+
+### 2.2 채용정보 상세 — `210D01`
+```
+https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210D01.do
+  ?authKey=[인증키]&callTp=D&returnType=XML&wantedAuthNo=[구인인증번호]&infoSvc=VALIDATION
+```
+> 서비스 코드가 경로에 박혀 있다. `210L02` 는 **404** — 임의 추측 불가.
+
+---
+
+## 3. 요청 파라미터
+
+### 3.1 공통 필수
+| 파라미터 | 값 | 비고 |
 |---|---|---|
-| `001` | 인증키값이 없습니다 | `authKey` 파라미터 누락 |
-| `002` | 유효하지 않은 인증키 입니다 | 키가 **서버에 등록되지 않음**(미승인/미활성/타 서비스용) |
-| `004` | 리턴 타입이 올바르지 않습니다 | `returnType` 누락 또는 오타 |
+| `authKey` | UUID | **대소문자 구분**. `authkey` 는 누락 처리 |
+| `callTp` | `L` 목록 / `D` 상세 | |
+| `returnType` | `XML` | 생략 시 에러 |
 
-> **진단 요령**: 무작위 UUID와 내 키가 **같은 코드**를 내면 키 등록 문제,
-> **다른 코드**를 내면 권한/파라미터 문제다. 이 구분이 디버깅 시간을 크게 줄인다.
-
-응답 루트 태그는 `<wantedRoot>`.
-
-### 3.3 우리가 실제로 쓸 파라미터
-| 파라미터 | 설정값 | 이유 |
-|---|---|---|
-| 직종 | `TODO` | IT/정보통신 직종 코드로 한정 |
-| 등록일 | `TODO` | 증분 수집(최근 N일)에 사용 |
-| 정렬방식 | `TODO` | 페이징 중 순서가 흔들리지 않아야 함 |
-
-### 3.4 응답 필드 → `jobs` 테이블 매핑
-| 응답 XML 태그 | 의미 | `jobs` 컬럼 | 변환 규칙 |
+### 3.2 목록 전용 필수
+| 파라미터 | 기본 | **최대** | 비고 |
 |---|---|---|---|
-| `TODO` | 구인인증번호 | `source_id` | 그대로 |
-| `TODO` | 회사명 | `companies.name` | 법인격 제거 후 정규화 |
-| `TODO` | 채용제목 | `title` | |
-| `TODO` | 경력 | `exp_min` / `exp_max` | 문자열 파싱 |
-| `TODO` | 임금 | `salary_min` / `salary_max` | 임금형태(연봉/월급/시급) 따라 연봉 환산 |
-| `TODO` | 근무지역 | `region_code` / `region_name` | |
-| `TODO` | 학력 | `education` | 코드 매핑 |
-| `TODO` | 마감일 | `deadline` | 상시채용은 NULL |
+| `startPage` | 1 | **1000** | |
+| `display` | 10 | **100** | |
 
-### 3.5 코드 테이블
-직종·지역·학력 등은 **코드값**으로 온다. 명세서의 코드표를 `data/work24_codes/` 에 저장한다.
-| 코드 종류 | 파일 | 확인 |
-|---|---|---|
-| 직종 | `TODO` | ⬜ |
-| 지역 | `TODO` | ⬜ |
-| 학력 | `TODO` | ⬜ |
-| 고용형태 | `TODO` | ⬜ |
+> **수집 상한**: 한 검색조건당 `100 × 1000 = 100,000건`.
+> 이를 넘으면 조건(직종·지역·기간)을 쪼개 수집해야 한다.
 
-### 3.6 운영 제약
-| 항목 | 값 | 확인 |
+### 3.3 상세 전용 필수
+| 파라미터 | 값 |
+|---|---|
+| `wantedAuthNo` | 구인인증번호 (목록 응답에서 획득) |
+| `infoSvc` | `VALIDATION` (워크넷 인증) |
+
+### 3.4 우리가 쓸 선택 파라미터
+| 파라미터 | 용도 | 값 |
 |---|---|---|
-| 일일 호출 한도 | `TODO` | ⬜ |
-| 초당 호출 제한 | `TODO` | ⬜ |
-| 에러 코드 체계 | `TODO` | ⬜ |
+| `occupation` | **IT 직종 한정** | 직종코드 (다중 가능, `\|` 구분). 과다 입력 시 제한 |
+| `region` | 지역 필터 | 근무지역코드 (다중 가능) |
+| `regDate` | **증분 수집** | `D-0` 오늘 / `D-3` / `W-1` / `W-2` / `M-1` |
+| `minWantedAuthDt` / `maxWantedAuthDt` | **백필** | 구인인증일자 범위 |
+| `sortOrderBy` | 페이징 안정화 | `DESC`(기본) / `ASC` |
+| `empTpGb` | 채용구분 | `1` 상용직(기본) / `2` 일용직 |
+
+### 3.5 기타 선택 파라미터 (참고)
+`salTp`(임금형태 D/H/M/Y) · `minPay`/`maxPay` · `education`(00~07) ·
+`career`(N 신입/E 경력/Z 무관) + `minCareerM`/`maxCareerM`(**개월 단위**) ·
+`empTp`(고용형태) · `coTp`(기업형태) · `workerCnt`(사원수) · `welfare`(근무편의) ·
+`keyword` · `major`(전공) · `foreignLanguage` · `certificate` · `workHrCd`(근무시간) ·
+`subway`(역세권) · `busino`(사업자번호) · `dtlSmlgntYn`(강소기업) · `workStudyJoinYn`(일학습병행) ·
+`untilEmpWantedYn`(채용시까지) · `scrapInfoYn` · `pref`(우대조건) · `holidayTp`(근무형태) ·
+`termContractMmcnt`(근무기간) · `comPreferential`(컴퓨터활용) · `pfPreferential`(일반우대)
 
 ---
 
-## 4. 확인해야 할 질문 (설계에 직결)
+## 4. 응답 구조
 
-1. **IT 직군 공고가 몇 건이나 되는가?** → 목표 10,000건 달성 가능한지 판단 (Phase 1 DoD)
-2. **상세 API에 "자격요건/우대사항" 본문이 있는가?** → 없으면 스킬 추출 자체가 불가. **가장 중요한 질문**
-3. **증분 수집이 가능한가?** (등록일/수정일 필터) → 없으면 매일 전체를 긁어야 함
-4. **페이징 최대 깊이 제한이 있는가?** → 있으면 조건을 쪼개서 수집해야 함
-5. 마감된 공고도 조회되는가? → 이력 데이터 축적 가능 여부
+### 4.1 목록 `<wantedRoot>`
+```
+<wantedRoot>
+  <total>          총건수
+  <startPage>      시작위치
+  <display>        출력건수
+  <wanted>                        ← 반복
+    <wantedAuthNo>   구인인증번호   ★ 상세 조회 키 = jobs.source_id
+    <company>        회사명
+    <busino>         사업자등록번호  ★ 회사 식별 키
+    <indTpNm>        업종
+    <title>          채용제목
+    <salTpNm> <sal> <minSal> <maxSal>    임금형태 / 급여 / 최소 / 최대
+    <region>         근무지역
+    <holidayTpNm>    근무형태
+    <minEdubg> <maxEdubg>                최소·최대 학력
+    <career>         경력
+    <regDt> <closeDt>                    등록일 / 마감일
+    <infoSvc>        정보제공처 (VALIDATION)
+    <wantedInfoUrl> <wantedMobileInfoUrl>
+    <zipCd> <strtnmCd> <basicAddr> <detailAddr>   주소
+    <empTpCd>        고용형태코드
+    <jobsCd>         직종코드
+    <smodifyDtm>     최종수정일   ★ 변경 감지에 활용
+```
+
+### 4.2 상세 `<wantedDtl>` — **본문 텍스트는 여기 있다**
+```
+<wantedDtl>
+  <wantedAuthNo>
+  <corpInfo>                               ← companies 테이블 강화
+    <corpNm> <reperNm> <totPsncnt> <capitalAmt> <yrSalesAmt>
+    <indTpCdNm> <busiCont> <corpAddr> <homePg> <busiSize>
+  </corpInfo>
+  <wantedInfo>
+    <jobsNm>       모집직종
+    <wantedTitle>  구인제목
+    <relJobsNm>    관련직종
+    <jobCont>      ★★★ 직무내용  ← 스킬 추출의 주 대상
+    <certificate>  자격면허       ← 필수 요건
+    <major>        전공
+    <forLang>      외국어
+    <compAbl>      컴퓨터활용능력  ← 우대
+    <pfCond>       우대조건       ← 우대
+    <etcPfCond>    기타우대조건    ← 우대
+    <etcHopeCont>  기타안내
+    <selMthd> <rcptMthd> <submitDoc>      전형/접수/제출서류
+    <receiptCloseDt> <empTpNm> <collectPsncnt>
+    <salTpNm> <enterTpNm> <eduNm>
+    <workRegion> <indArea> <nearLine> <workdayWorkhrCont>
+    <fourIns> <retirepay> <etcWelfare> <disableCvntl>
+    <attachFileInfo><attachFileUrl>        회사소개 첨부
+    <keywordList><srchKeywordNm>           ★ 워크넷이 부여한 키워드
+    <dtlRecrContUrl>                       상세모집내용 URL
+    <jobsCd> <minEdubgIcd> <maxEdubgIcd> <regionCd>
+    <empTpCd> <enterTpCd> <salTpCd>        코드값들
+    <staAreaRegionCd> <lineCd> <staNmCd> <exitNoCd> <walkDistCd>
+  </wantedInfo>
+  <empchargeInfo>                          ⚠️ 개인정보 — 저장 금지
+    <empChargerDpt> <contactTelno> <empChargerHp> <chargerFaxNo> <chargerEmail>
+  </empchargeInfo>
+</wantedDtl>
+```
+
+### 4.3 코드값
+| 코드 | 값 |
+|---|---|
+| 학력 (`minEdubgIcd`) | `00` 무관 `01` 초졸이하 `02` 중졸 `03` 고졸 `04` 대졸(2~3년) `05` 대졸(4년) `06` 석사 `07` 박사 |
+| 경력 (`enterTpCd`) | `N` 신입 `E` 경력 `Z` 관계없음 |
+| 임금형태 (`salTpCd`) | `D` 일급 `H` 시급 `M` 월급 `Y` 연봉 |
+| 고용형태 (`empTpCd`) | `10` 기간의 정함 없음 `11` 〃(시간선택제) `20` 기간의 정함 있음 … |
+
+직종·지역 코드표는 엑셀로 제공 → `data/work24_codes/jobs.xls`, `region.xls` 에 저장 완료.
+(출처: `https://openapi.work.go.kr/opi/opi/common/useApi/apiCdList.do?cdGbn=jobs|region`)
 
 ---
 
-## 5. 참고 링크
-- 공공데이터포털: https://www.data.go.kr/data/3038225/openapi.do
-- 고용24 OPEN-API 안내: https://www.work24.go.kr/cm/e/a/0110/selectOpenApiIntro.do
+## 5. 작업 1.1의 5개 질문 — 답변
+
+| # | 질문 | 답 |
+|---|---|---|
+| 1 | 상세 API에 본문 텍스트가 있는가? | ✅ **있다.** `jobCont`(직무내용) 중심으로 `certificate`·`pfCond`·`etcPfCond`·`compAbl` |
+| 2 | 1회 최대 건수 / 페이징 깊이 | `display` 최대 **100**, `startPage` 최대 **1000** → 조건당 10만 건 |
+| 3 | 증분 수집 가능한가? | ✅ `regDate`(D-0~M-1) 또는 `minWantedAuthDt`/`maxWantedAuthDt` 범위 |
+| 4 | IT 직종 필터 가능한가? | ✅ `occupation` 파라미터. **실제 건수는 API 승인 후 측정 필요** |
+| 5 | 일일 호출 한도 | ❓ 명세에 없음. 실측 또는 문의 필요 |
+
+---
+
+## 6. 설계에 미치는 영향 ★
+
+### 6.1 좋은 소식 — 섹션 분리 작업이 거의 사라진다
+당초 설계는 "공고 본문이 자유 서술이니 자격요건/우대사항 섹션을 정규식으로 쪼갠다"였다(작업 1.6).
+그런데 **API가 이미 필드로 나눠서 준다.**
+
+| 우리 설계의 `sections` | 대응 필드 |
+|---|---|
+| `main_tasks` | `jobCont` |
+| `requirements` | `certificate`, `major`, `forLang`, `eduNm`, `enterTpNm` |
+| `preferred` | `pfCond`, `etcPfCond`, `compAbl` |
+| `benefits` | `fourIns`, `retirepay`, `etcWelfare` |
+
+→ **`job_skills.is_required` 판정이 훨씬 정확해진다.** 문단 위치를 추측할 필요 없이
+어느 필드에서 나왔는지로 필수/우대가 결정된다.
+→ 작업 1.6은 "섹션 분리"가 아니라 "필드 → 섹션 매핑"으로 축소.
+
+### 6.2 나쁜 소식 — 상세는 건별 호출 (N+1)
+목록 1회로 100건을 받지만, 본문을 얻으려면 **`wantedAuthNo` 하나씩** 상세를 호출해야 한다.
+1만 건이면 **1만 번 호출**.
+
+→ 대응:
+- `content_hash` / `smodifyDtm` 으로 **변경된 공고만** 상세 재호출
+- 동시성 제한 + 요청 간격 (rate limit 미상이므로 보수적으로)
+- Celery 태스크를 목록/상세로 분리, 상세는 큐에 쌓아 천천히 소화
+
+### 6.3 개인정보 — `empchargeInfo` 는 저장하지 않는다
+담당자 휴대전화·이메일·팩스가 온다. **우리 서비스에 불필요하고 보관 위험만 크다.**
+→ Raw 레이어 적재 시점에 **마스킹 후 저장**하거나 아예 제거한다. (정규화 단계가 아니라 수집 단계에서)
+
+### 6.4 `companies` 테이블이 풍부해진다
+`totPsncnt`(근로자수) · `capitalAmt`(자본금) · `yrSalesAmt`(연매출) · `busiSize`(회사규모) · `busiCont`(주요사업) ·
+`homePg` 확보 → Phase 2 매칭 피처(기업 규모 선호)로 바로 쓸 수 있다.
+`busino`(사업자등록번호)가 있어 **회사 식별이 정확**하다 (이름 정규화 매칭 불필요).
+
+### 6.5 `keywordList` 는 공짜 라벨
+워크넷이 이미 부여한 검색 키워드다. 우리 스킬 추출기의 **정답 비교군(평가셋)** 으로 쓸 수 있다.
+
+---
+
+## 7. 남은 확인 사항
+- [ ] 채용정보 API **활용신청 승인** (현재 미승인)
+- [ ] 직종코드 엑셀 파싱 → IT 관련 코드 목록 확정
+- [ ] IT 직종 실제 공고 건수 측정 (Phase 1 DoD 10,000건 달성 가능성)
+- [ ] 일일/초당 호출 한도 실측
+- [ ] `jobCont` 의 실제 텍스트 품질 (길이 분포, 빈 값 비율)
