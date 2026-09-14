@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 같은 브랜치에 연속 push하면 이전 실행을 취소한다 (시간/비용 절약)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint / Typecheck / Unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true        # 의존성 캐시로 2회차부터 빨라진다
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      - name: ruff format
+        run: ruff format --check .   # --check: 고치지 말고 어긋나면 실패시켜라
+
+      - name: ruff lint
+        run: ruff check .
+
+      - name: mypy
+        run: mypy
+
+      - name: Unit tests
+        run: pytest -m "not integration"
+
+  integration:
+    name: Integration (Postgres + Redis)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: jobfit
+          POSTGRES_USER: jobfit
+          POSTGRES_PASSWORD: jobfit_dev
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jobfit -d jobfit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    # .env 파일이 없는 환경이므로 환경변수로 직접 주입한다.
+    # pydantic-settings는 환경변수를 .env보다 우선한다.
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: jobfit
+      POSTGRES_USER: jobfit
+      POSTGRES_PASSWORD: jobfit_dev
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Run migrations
+        run: alembic upgrade head
+
+      - name: Integration tests
+        run: pytest
