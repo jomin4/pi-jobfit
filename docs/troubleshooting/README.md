@@ -10,6 +10,7 @@
 |---|---|---|---|
 | [TS-001](TS-001-editable-install-empty.md) | editable 설치가 빈 껍데기로 남는 문제 | 0 | `ModuleNotFoundError: No module named 'jobfit'` |
 | [TS-002](TS-002-postgres-port-conflict.md) | 네이티브 PostgreSQL과의 5432 포트 충돌 | 0 | `password authentication failed`, 깨진 한글 에러 |
+| [TS-003](TS-003-precommit-cp949.md) | pre-commit 설정의 한글 주석이 cp949로 깨짐 (+훅 버전·PATH·CRLF) | 0 | `UnicodeDecodeError: cp949`, `no files to check`, `mypy not found` |
 
 ## 새 항목 작성 규칙
 - 파일명: `TS-NNN-짧은-영문-슬러그.md`
