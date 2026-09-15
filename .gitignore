@@ -29,3 +29,6 @@ mlruns/
 # OS
 Thumbs.db
 desktop.ini
+
+# 샘플 생성물 (생성기만 커밋한다 — ADR-002)
+data/raw/

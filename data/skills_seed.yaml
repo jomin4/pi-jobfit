@@ -1,0 +1,117 @@
+# 스킬 사전 시드 — skills 테이블의 초기 데이터.
+#
+# name      : 표준명. skills.canonical_name (유일)
+# category  : language | framework | database | cloud | tool | soft | domain
+# aliases   : 같은 스킬의 다른 표기. 소문자 비교로 매칭한다
+# patterns  : 별칭만으로 오탐을 못 막는 경우의 정규식 (R, C, Go 처럼 짧은 이름)
+#
+# 오탐 주의 대상에는 patterns 를 반드시 넣는다. 예) R&D 의 R, C 레벨 임원의 C
+
+skills:
+  # ---------------- language ----------------
+  - {name: Python, category: language, aliases: [파이썬, python3, py]}
+  - {name: Java, category: language, aliases: [자바]}
+  - {name: JavaScript, category: language, aliases: [자바스크립트, js, ecmascript]}
+  - {name: TypeScript, category: language, aliases: [타입스크립트, ts]}
+  - {name: Go, category: language, aliases: [golang, 고랭], patterns: ['(?<![A-Za-z])[Gg]o(?:lang)?(?![A-Za-z])']}
+  - {name: Kotlin, category: language, aliases: [코틀린]}
+  - {name: Swift, category: language, aliases: [스위프트]}
+  - {name: C, category: language, aliases: [], patterns: ['(?<![A-Za-z+#&])C(?![A-Za-z+#&])']}
+  - {name: C++, category: language, aliases: [cpp, 씨쁠쁠]}
+  - {name: C#, category: language, aliases: [csharp, 씨샵]}
+  - {name: Ruby, category: language, aliases: [루비]}
+  - {name: PHP, category: language, aliases: []}
+  - {name: Rust, category: language, aliases: [러스트]}
+  - {name: Scala, category: language, aliases: [스칼라]}
+  - {name: R, category: language, aliases: [], patterns: ['(?<![A-Za-z&+#])R(?![A-Za-z&+#])']}
+  - {name: SQL, category: language, aliases: [에스큐엘, 쿼리]}
+  - {name: Shell, category: language, aliases: [bash, 셸스크립트, 쉘스크립트]}
+
+  # ---------------- framework ----------------
+  - {name: Spring, category: framework, aliases: [스프링]}
+  - {name: Spring Boot, category: framework, aliases: [스프링부트, springboot]}
+  - {name: Django, category: framework, aliases: [장고]}
+  - {name: FastAPI, category: framework, aliases: [패스트api]}
+  - {name: Flask, category: framework, aliases: [플라스크]}
+  - {name: React, category: framework, aliases: [리액트, reactjs, react.js]}
+  - {name: Vue.js, category: framework, aliases: [vue, 뷰, vuejs]}
+  - {name: Angular, category: framework, aliases: [앵귤러]}
+  - {name: Next.js, category: framework, aliases: [nextjs, 넥스트js]}
+  - {name: Node.js, category: framework, aliases: [nodejs, 노드js, node]}
+  - {name: Express, category: framework, aliases: [expressjs]}
+  - {name: NestJS, category: framework, aliases: [nest.js, 네스트js]}
+  - {name: React Native, category: framework, aliases: [리액트네이티브, rn]}
+  - {name: Flutter, category: framework, aliases: [플러터]}
+  - {name: PyTorch, category: framework, aliases: [파이토치, torch]}
+  - {name: TensorFlow, category: framework, aliases: [텐서플로, 텐서플로우, tf]}
+  - {name: scikit-learn, category: framework, aliases: [sklearn, 사이킷런]}
+  - {name: LangChain, category: framework, aliases: [랭체인]}
+  - {name: Pandas, category: framework, aliases: [판다스]}
+  - {name: NumPy, category: framework, aliases: [넘파이]}
+  - {name: Polars, category: framework, aliases: [폴라스]}
+  - {name: Spark, category: framework, aliases: [스파크, pyspark, apache spark]}
+  - {name: Airflow, category: framework, aliases: [에어플로우, apache airflow]}
+  - {name: Kafka, category: framework, aliases: [카프카, apache kafka]}
+  - {name: Celery, category: framework, aliases: [셀러리]}
+  - {name: jQuery, category: framework, aliases: [제이쿼리]}
+
+  # ---------------- database ----------------
+  - {name: MySQL, category: database, aliases: [마이에스큐엘, my-sql]}
+  - {name: PostgreSQL, category: database, aliases: [postgres, psql, 포스트그레스, pg]}
+  - {name: Oracle, category: database, aliases: [오라클]}
+  - {name: MongoDB, category: database, aliases: [몽고디비, mongo]}
+  - {name: Redis, category: database, aliases: [레디스]}
+  - {name: Elasticsearch, category: database, aliases: [엘라스틱서치, elastic search, es]}
+  - {name: MariaDB, category: database, aliases: [마리아디비]}
+  - {name: DynamoDB, category: database, aliases: [다이나모디비]}
+  - {name: ClickHouse, category: database, aliases: [클릭하우스]}
+  - {name: BigQuery, category: database, aliases: [빅쿼리]}
+  - {name: Snowflake, category: database, aliases: [스노우플레이크]}
+  - {name: pgvector, category: database, aliases: []}
+
+  # ---------------- cloud ----------------
+  - {name: AWS, category: cloud, aliases: [아마존웹서비스, amazon web services]}
+  - {name: GCP, category: cloud, aliases: [google cloud, 구글클라우드]}
+  - {name: Azure, category: cloud, aliases: [애저, 아주르]}
+  - {name: Naver Cloud, category: cloud, aliases: [ncp, 네이버클라우드]}
+  - {name: Kubernetes, category: cloud, aliases: [쿠버네티스, k8s, k3s]}
+  - {name: Docker, category: cloud, aliases: [도커]}
+  - {name: Terraform, category: cloud, aliases: [테라폼]}
+  - {name: Jenkins, category: cloud, aliases: [젠킨스]}
+  - {name: GitHub Actions, category: cloud, aliases: [깃헙액션, github action]}
+  - {name: ArgoCD, category: cloud, aliases: [아르고시디, argo cd]}
+
+  # ---------------- tool ----------------
+  - {name: Git, category: tool, aliases: [깃, github, gitlab]}
+  - {name: Jira, category: tool, aliases: [지라]}
+  - {name: Confluence, category: tool, aliases: [컨플루언스]}
+  - {name: Figma, category: tool, aliases: [피그마]}
+  - {name: Grafana, category: tool, aliases: [그라파나]}
+  - {name: Prometheus, category: tool, aliases: [프로메테우스]}
+  - {name: Datadog, category: tool, aliases: [데이터독]}
+  - {name: Linux, category: tool, aliases: [리눅스, ubuntu, centos]}
+  - {name: MLflow, category: tool, aliases: [엠엘플로우]}
+
+  # ---------------- domain ----------------
+  - {name: MSA, category: domain, aliases: [마이크로서비스, microservice, microservices]}
+  - {name: REST API, category: domain, aliases: [restful, rest-api, 레스트api]}
+  - {name: GraphQL, category: domain, aliases: [그래프큐엘]}
+  - {name: gRPC, category: domain, aliases: []}
+  - {name: CI/CD, category: domain, aliases: [ci cd, 지속적통합, 지속적배포]}
+  - {name: TDD, category: domain, aliases: [테스트주도개발]}
+  - {name: DDD, category: domain, aliases: [도메인주도설계]}
+  - {name: 대용량 트래픽, category: domain, aliases: [대용량처리, 고트래픽, 트래픽 처리]}
+  - {name: 데이터 파이프라인, category: domain, aliases: [etl, elt, data pipeline]}
+  - {name: MLOps, category: domain, aliases: [엠엘옵스]}
+  - {name: 추천시스템, category: domain, aliases: [recommendation, 추천 시스템]}
+  - {name: 검색엔진, category: domain, aliases: [search engine, 검색 엔진]}
+  - {name: 결제시스템, category: domain, aliases: [payment, 결제 시스템, pg연동]}
+  - {name: 정보보안, category: domain, aliases: [security, 보안관제, 모의해킹]}
+  - {name: RAG, category: domain, aliases: [검색증강생성, retrieval augmented generation]}
+
+  # ---------------- soft ----------------
+  - {name: 커뮤니케이션, category: soft, aliases: [의사소통, communication]}
+  - {name: 협업, category: soft, aliases: [팀워크, collaboration]}
+  - {name: 문제해결, category: soft, aliases: [문제 해결, problem solving]}
+  - {name: 리더십, category: soft, aliases: [leadership]}
+  - {name: 문서화, category: soft, aliases: [documentation, 기술문서]}

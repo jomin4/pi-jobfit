@@ -1,0 +1,234 @@
+# 샘플 공고 생성용 어휘 풀 (ADR-002).
+#
+# 회사명은 전부 가상이다. 실존 기업명을 쓰면 "그 회사가 실제로 이 공고를 냈다"는
+# 오해를 만들 수 있어 의도적으로 피했다.
+#
+# weight 는 상대 가중치. 실제 시장 분포에 대한 **추정치**이며 실측값이 아니다.
+# 실데이터를 확보하면 대조해서 보정할 것.
+
+company_bases:
+  - 넥스트레이어
+  - 코드하버
+  - 블루스택트
+  - 하나루프
+  - 에이치엠랩
+  - 소프트크래프트
+  - 데이터브릿지
+  - 파인튜너
+  - 온더레일
+  - 클라우드그램
+  - 리버사이드테크
+  - 스칼라비트
+  - 엔진루트
+  - 픽셀그로브
+  - 트라이브릿지
+  - 라이트스핀
+  - 세븐노드
+  - 메타폴드
+  - 그린랜턴소프트
+  - 아이언밸리
+  - 퀀텀리프
+  - 노바스택
+  - 딥포레스트
+  - 오렌지파이프
+  - 심플로직
+  - 벨로시티랩
+  - 스톤브릿지테크
+  - 하이퍼큐브
+  - 문라이트웍스
+  - 제로베이스랩
+
+# 같은 회사가 소스마다 다르게 표기되는 상황을 재현한다 (name_normalized 테스트용)
+company_name_forms:
+  - "(주){base}"
+  - "{base}(주)"
+  - "{base} 주식회사"
+  - "㈜{base}"
+  - "{base}"
+
+industries:
+  - {code: "62", name: "컴퓨터 프로그래밍, 시스템 통합 및 관리업", weight: 45}
+  - {code: "63", name: "정보서비스업", weight: 20}
+  - {code: "58", name: "출판업(소프트웨어)", weight: 12}
+  - {code: "64", name: "금융업", weight: 8}
+  - {code: "47", name: "소매업(전자상거래)", weight: 10}
+  - {code: "70", name: "연구개발업", weight: 5}
+
+# 고용24 지역코드 체계를 따른다
+regions:
+  - {code: "11000", name: "서울특별시", weight: 55}
+  - {code: "41000", name: "경기도", weight: 20}
+  - {code: "26000", name: "부산광역시", weight: 5}
+  - {code: "28000", name: "인천광역시", weight: 4}
+  - {code: "30000", name: "대전광역시", weight: 3}
+  - {code: "27000", name: "대구광역시", weight: 3}
+  - {code: "29000", name: "광주광역시", weight: 3}
+  - {code: "48000", name: "경상남도", weight: 3}
+  - {code: "43000", name: "충청북도", weight: 2}
+  - {code: "50000", name: "제주특별자치도", weight: 2}
+
+roles:
+  - key: backend
+    weight: 20
+    jobs_cd: "133100"
+    category: 백엔드
+    titles: ["백엔드 개발자", "서버 개발자", "Backend Engineer", "백엔드 엔지니어"]
+    core: [Java, Spring Boot, MySQL, REST API, Git]
+    alt_core: [Python, Django, PostgreSQL, Node.js, NestJS]
+    nice: [Redis, Kafka, Docker, Kubernetes, MSA, 대용량 트래픽, AWS]
+
+  - key: frontend
+    weight: 15
+    jobs_cd: "133200"
+    category: 프론트엔드
+    titles: ["프론트엔드 개발자", "웹 퍼블리셔 겸 개발자", "Frontend Engineer", "웹 프론트 개발자"]
+    core: [JavaScript, TypeScript, React, Git]
+    alt_core: [Vue.js, Next.js, Angular, jQuery]
+    nice: [Figma, GraphQL, Node.js, 협업]
+
+  - key: fullstack
+    weight: 8
+    jobs_cd: "133300"
+    category: 풀스택
+    titles: ["풀스택 개발자", "Full-stack Engineer", "웹 개발자"]
+    core: [JavaScript, TypeScript, React, Node.js, MySQL]
+    alt_core: [Python, Django, Vue.js, PostgreSQL]
+    nice: [AWS, Docker, REST API, Git]
+
+  - key: mobile
+    weight: 8
+    jobs_cd: "133400"
+    category: 모바일
+    titles: ["안드로이드 개발자", "iOS 개발자", "모바일 앱 개발자", "Mobile Engineer"]
+    core: [Kotlin, Java, Git]
+    alt_core: [Swift, Flutter, React Native]
+    nice: [REST API, Firebase, 협업]
+
+  - key: data_engineer
+    weight: 8
+    jobs_cd: "133500"
+    category: 데이터엔지니어링
+    titles: ["데이터 엔지니어", "Data Engineer", "빅데이터 개발자"]
+    core: [Python, SQL, Spark, Airflow, 데이터 파이프라인]
+    alt_core: [Scala, Kafka, BigQuery, Snowflake]
+    nice: [AWS, Docker, Kubernetes, ClickHouse, 대용량 트래픽]
+
+  - key: data_analyst
+    weight: 7
+    jobs_cd: "133600"
+    category: 데이터분석
+    titles: ["데이터 분석가", "Data Analyst", "비즈니스 분석가"]
+    core: [SQL, Python, Pandas]
+    alt_core: [R, NumPy, BigQuery]
+    nice: [Grafana, 커뮤니케이션, 문서화, 추천시스템]
+
+  - key: ml
+    weight: 5
+    jobs_cd: "133700"
+    category: 머신러닝
+    titles: ["머신러닝 엔지니어", "ML Engineer", "AI 엔지니어", "MLOps 엔지니어"]
+    core: [Python, PyTorch, scikit-learn, NumPy]
+    alt_core: [TensorFlow, MLflow, LangChain, RAG]
+    nice: [Docker, Kubernetes, MLOps, AWS, 추천시스템]
+
+  - key: devops
+    weight: 8
+    jobs_cd: "133800"
+    category: 데브옵스
+    titles: ["DevOps 엔지니어", "인프라 엔지니어", "SRE", "클라우드 엔지니어"]
+    core: [Linux, Docker, Kubernetes, AWS, CI/CD]
+    alt_core: [Terraform, Jenkins, GCP, ArgoCD]
+    nice: [Prometheus, Grafana, Shell, GitHub Actions]
+
+  - key: qa
+    weight: 5
+    jobs_cd: "133900"
+    category: QA
+    titles: ["QA 엔지니어", "테스트 엔지니어", "SDET"]
+    core: [Python, Git, 문서화]
+    alt_core: [Java, Shell, TDD]
+    nice: [Jira, CI/CD, 커뮤니케이션]
+
+  - key: security
+    weight: 4
+    jobs_cd: "134000"
+    category: 보안
+    titles: ["정보보안 담당자", "보안 엔지니어", "보안관제 전문가"]
+    core: [정보보안, Linux, 문서화]
+    alt_core: [Python, Shell]
+    nice: [AWS, Kubernetes, 커뮤니케이션]
+
+  - key: pm
+    weight: 6
+    jobs_cd: "134100"
+    category: 기획
+    titles: ["서비스 기획자", "프로덕트 매니저", "PM/PO"]
+    core: [커뮤니케이션, 문서화, SQL]
+    alt_core: [Figma, Jira]
+    nice: [협업, 문제해결, 리더십]
+
+  - key: search
+    weight: 6
+    jobs_cd: "134200"
+    category: 검색·추천
+    titles: ["검색 엔지니어", "추천 시스템 개발자", "Search Engineer"]
+    core: [Python, Elasticsearch, 검색엔진]
+    alt_core: [Java, 추천시스템, Spark]
+    nice: [Kafka, Redis, 대용량 트래픽, pgvector]
+
+# ---- 파싱 난이도를 만드는 원문 표기들 ----
+
+salary_forms:
+  - {kind: none, weight: 45, text: ["회사내규에 따름", "면접 후 결정", "협의 후 결정", "추후 협의"]}
+  - {kind: range, weight: 40, text: ["연 {min}~{max}만원", "{min}만원 ~ {max}만원", "연봉 {min}-{max}"]}
+  - {kind: single, weight: 15, text: ["연 {min}만원 이상", "{min}만원 이상", "월 {month}만원"]}
+
+career_forms:
+  - {code: "Z", weight: 15, text: ["경력무관", "경력 무관", "신입/경력"]}
+  - {code: "N", weight: 18, text: ["신입", "신입 채용", "신입 (인턴 우대)"]}
+  - {code: "E", weight: 67, text: ["경력 {min}년 이상", "{min}~{max}년", "경력 {months}개월 이상", "{min}년차 이상"]}
+
+deadline_forms:
+  - {kind: date, weight: 70, text: ["{y}-{m}-{d}", "{y}.{m}.{d}", "{y}/{m}/{d}"]}
+  - {kind: open, weight: 30, text: ["상시채용", "채용시까지", "채용시 마감"]}
+
+# 본문에 섞을 오염 (HTML 잔재, 과한 공백)
+noise_snippets:
+  - "<br>"
+  - "&nbsp;"
+  - "&amp;"
+  - "\n\n\n"
+  - "※"
+
+# 추출기를 속이기 위한 함정. 여기 등장하는 스킬은 정답에 넣지 않는다.
+trap_phrases:
+  - "R&D 조직과 긴밀히 협업합니다"
+  - "C 레벨 임원과의 커뮤니케이션 기회가 많습니다"
+  - "Go 사업부 신설에 따른 충원입니다"
+  - "Java 경험은 필수가 아닙니다"
+  - "Python 경험 무관"
+  - "R 부서 이관 예정"
+
+jobcont_intro:
+  - "{role} 포지션에서 서비스 전반의 개발을 담당합니다."
+  - "{company}의 {role} 직무를 함께할 분을 찾습니다."
+  - "성장 중인 {role} 조직에서 핵심 기능을 만들어갈 분을 모십니다."
+  - "{role}로서 제품의 안정성과 확장성을 책임집니다."
+
+jobcont_task:
+  - "- {skill} 기반 기능 설계 및 구현"
+  - "- {skill}을 활용한 서비스 개발 및 운영"
+  - "- {skill} 환경에서의 성능 개선"
+  - "- {skill} 도입 및 유지보수"
+  - "- 신규 프로젝트에서 {skill} 적용"
+
+require_line:
+  - "- {skill} 실무 경험"
+  - "- {skill} 활용 능력"
+  - "- {skill}에 대한 이해"
+  - "- {skill} 개발 경험 보유자"
+
+prefer_line:
+  - "- {skill} 사용 경험이 있으신 분"
+  - "- {skill} 우대"
+  - "- {skill} 경험자 우대합니다"
