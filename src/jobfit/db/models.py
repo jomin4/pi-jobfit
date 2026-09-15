@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     Computed,
     Date,
@@ -19,7 +20,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, REAL, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from jobfit.db.base import Base
@@ -203,4 +204,65 @@ class Job(Base):
         Index("ix_jobs_exp", "exp_min", "exp_max"),
         Index("ix_jobs_search_tsv", "search_tsv", postgresql_using="gin"),
         Index("ix_jobs_company", "company_id"),
+    )
+
+
+class Skill(Base):
+    """스킬 사전. 표준명 하나에 여러 별칭을 묶는다."""
+
+    __tablename__ = "skills"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    canonical_name: Mapped[str] = mapped_column(String(80), nullable=False)
+    # 같은 스킬의 다른 표기: {postgres, psql, 포스트그레스}
+    aliases: Mapped[list[str]] = mapped_column(
+        ARRAY(String(80)), nullable=False, server_default=text("'{}'")
+    )
+    category: Mapped[str] = mapped_column(String(20), nullable=False)
+    # 별칭만으로 못 잡는 경우의 정규식. 예: 언어 R 과 R&D 를 구분
+    match_patterns: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+    # 삭제 대신 비활성화 — job_skills 가 참조 중인 과거 추출 결과를 보존한다
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("true")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint("canonical_name", name="uq_skills_canonical_name"),
+        CheckConstraint(
+            "category IN ('language', 'framework', 'database', 'cloud', 'tool', 'soft', 'domain')",
+            name="ck_skills_category",
+        ),
+        # 별칭 배열 안에서 찾기 — 'psql' 이 어느 스킬의 별칭인지 역조회
+        Index("ix_skills_aliases", "aliases", postgresql_using="gin"),
+    )
+
+
+class JobSkill(Base):
+    """공고 ↔ 스킬 연결. 필수/우대 구분과 추출 신뢰도를 함께 담는다."""
+
+    __tablename__ = "job_skills"
+
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    skill_id: Mapped[int] = mapped_column(
+        ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True
+    )
+    # 자격요건 필드에서 나왔으면 True, 우대사항이면 False
+    is_required: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    occurrences: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=1, server_default=text("1")
+    )
+    confidence: Mapped[float] = mapped_column(REAL, nullable=False, server_default=text("1.0"))
+    # 어느 추출기가 만든 결과인지. dict_v1 / llm_v1 을 나란히 두고 비교한다
+    extracted_by: Mapped[str] = mapped_column(String(20), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        CheckConstraint("confidence >= 0 AND confidence <= 1", name="ck_job_skills_confidence"),
+        # "Python을 필수로 요구하는 공고는?" 역방향 조회 — 스킬 갭/시장 통계에 필수
+        Index("ix_job_skills_skill", "skill_id", "is_required"),
     )

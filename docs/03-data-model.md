@@ -219,7 +219,7 @@ PK: `(snapshot_date, job_category, skill_id)`
 | 0001 | extension `vector`, `pg_trgm` | 0 | ✅ 적용 |
 | 0002 | `raw_job_postings`, `ingestion_runs` | 1 | ✅ 적용 |
 | 0003 | `companies`, `jobs` (+인덱스, tsvector) | 1 | ✅ 적용 |
-| 0004 | `skills`, `job_skills` | 1 | ⬜ |
+| 0004 | `skills`, `job_skills` | 1 | ✅ 적용 |
 | 0005 | `users`, `profiles`, `profile_skills`, `interactions` | 2 | ⬜ |
 | 0006 | `match_scores`, `skill_market_stats` | 2 | ⬜ |
 | 0007 | `job_embeddings` + HNSW 인덱스 | 3 | ⬜ |
