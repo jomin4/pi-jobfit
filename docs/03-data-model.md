@@ -45,9 +45,24 @@ erDiagram
 인덱스: `UNIQUE(source, source_id, content_hash)`, `INDEX(processed_at) WHERE processed_at IS NULL`
 
 **`ingestion_runs`** — 수집 실행 이력
-| 컬럼 | 타입 |
-|---|---|
-| id, source, started_at, finished_at, status, fetched_count, new_count, error_count, error_detail JSONB |
+| 컬럼 | 타입 | 비고 |
+|---|---|---|
+| id | BIGSERIAL PK | |
+| source | VARCHAR(32) NOT NULL | |
+| status | VARCHAR(16) NOT NULL DEFAULT 'running' | `running`/`success`/`failed` |
+| started_at | TIMESTAMPTZ NOT NULL DEFAULT now() | |
+| finished_at | TIMESTAMPTZ NULL | |
+| **api_calls** | INTEGER NOT NULL DEFAULT 0 | **사람인 일 500회 한도 추적** ([ADR-001](decisions/ADR-001-data-source.md)) |
+| fetched_count | INTEGER NOT NULL DEFAULT 0 | 가져온 건수 |
+| new_count | INTEGER NOT NULL DEFAULT 0 | 실제 신규 적재 건수 |
+| error_count | INTEGER NOT NULL DEFAULT 0 | |
+| error_detail | JSONB NULL | |
+
+인덱스: `INDEX(source, started_at)`
+
+> 카운터 컬럼은 `default=` (파이썬) 가 아니라 **`server_default=`** 로 선언한다.
+> 파이썬 기본값은 ORM을 거칠 때만 채워지므로, psql·Airflow·raw SQL 로 INSERT 하면
+> NOT NULL 위반이 난다. **DB가 채우게 해야 어느 경로로 들어와도 안전하다.**
 
 ---
 
@@ -199,13 +214,17 @@ PK: `(snapshot_date, job_category, skill_id)`
 
 ## 4. 마이그레이션 순서 (Alembic)
 
-| 리비전 | 내용 | Phase |
-|---|---|---|
-| 0001 | extension `vector`, `pg_trgm` / `raw_job_postings`, `ingestion_runs` | 1 |
-| 0002 | `companies`, `jobs` (+인덱스, tsvector) | 1 |
-| 0003 | `skills`, `job_skills` | 1 |
-| 0004 | `users`, `profiles`, `profile_skills`, `interactions` | 2 |
-| 0005 | `match_scores`, `skill_market_stats` | 2 |
-| 0006 | `job_embeddings` + HNSW 인덱스 | 3 |
-| 0007 | `chat_sessions`, `chat_messages` | 4 |
-| 0008 | `agent_runs` (LangGraph 상태 저장) | 6 |
+| 리비전 | 내용 | Phase | 상태 |
+|---|---|---|---|
+| 0001 | extension `vector`, `pg_trgm` | 0 | ✅ 적용 |
+| 0002 | `raw_job_postings`, `ingestion_runs` | 1 | ✅ 적용 |
+| 0003 | `companies`, `jobs` (+인덱스, tsvector) | 1 | ⬜ |
+| 0004 | `skills`, `job_skills` | 1 | ⬜ |
+| 0005 | `users`, `profiles`, `profile_skills`, `interactions` | 2 | ⬜ |
+| 0006 | `match_scores`, `skill_market_stats` | 2 | ⬜ |
+| 0007 | `job_embeddings` + HNSW 인덱스 | 3 | ⬜ |
+| 0008 | `chat_sessions`, `chat_messages` | 4 | ⬜ |
+| 0009 | `agent_runs` (LangGraph 상태 저장) | 6 | ⬜ |
+
+> 확장(extension) 설치를 0001로 분리했기 때문에 설계 당시 번호에서 하나씩 밀렸다.
+> 마이그레이션은 **이미 적용된 리비전을 재번호하지 않는다** — 문서를 실제에 맞춘다.
