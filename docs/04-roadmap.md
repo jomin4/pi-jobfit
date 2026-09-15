@@ -65,9 +65,9 @@
 ### 작업
 | # | 작업 | 산출물 |
 |---|---|---|
-| 1.1 | 고용24/공공데이터포털 API 키 발급, 스펙 조사, 샘플 응답 저장 | `docs/api-work24.md`, `tests/fixtures/` |
+| 1.1 | ~~고용24~~ → **사람인 API** 키 발급, 스펙 조사, 샘플 응답 저장 ([ADR-001](decisions/ADR-001-data-source.md)) | `docs/api-saramin.md`, `tests/fixtures/` |
 | 1.2 | Alembic 0001~0003 (raw, jobs, companies, skills, job_skills) | 마이그레이션 |
-| 1.3 | Collector: 목록→상세 2단계 수집, 재시도, rate limit, content_hash | `src/jobfit/collectors/work24.py` |
+| 1.3 | Collector: 소스 중립 인터페이스 + 사람인 구현, 재시도, **일 500회 예산 관리**, content_hash | `src/jobfit/collectors/{base,saramin}.py` |
 | 1.4 | Celery 앱 + Redis 브로커 + Beat 스케줄 (매일 06:00 KST) | `src/jobfit/worker/` |
 | 1.5 | Normalizer: Polars 변환 (경력/급여/학력/지역/마감 파싱) | `src/jobfit/processing/normalize.py` |
 | 1.6 | 섹션 분리 (주요업무/자격요건/우대사항) | `processing/sections.py` |
