@@ -130,3 +130,16 @@ def test_목록_응답은_고용24_필드명을_따른다() -> None:
 
     for key in ("wantedAuthNo", "company", "title", "region", "career", "closeDt", "jobsCd"):
         assert key in row
+
+
+def test_공고_날짜는_고정_기준일에서_계산된다() -> None:
+    """datetime.now() 로 되돌아가면 실행마다 content_hash 가 바뀌어 멱등성이 깨진다."""
+    from datetime import date, timedelta
+
+    from jobfit.collectors.sample import SAMPLE_EPOCH
+
+    doc = SampleCollector(total=5).fetch_detail("SAMPLE-000000")
+
+    assert doc is not None
+    posted = date.fromisoformat(doc.payload["regDt"])
+    assert timedelta(0) <= SAMPLE_EPOCH.date() - posted <= timedelta(days=60)

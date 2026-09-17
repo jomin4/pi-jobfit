@@ -30,6 +30,11 @@ _JOSA = {"을": "를", "이": "가", "은": "는", "과": "와"}
 _JOSA_RE = re.compile(r"([가-힣A-Za-z0-9#+\.])(을|를|이|가|은|는|과|와)(?=\s|$)")
 _SOURCE_ID = re.compile(r"^SAMPLE-(\d{6})$")
 
+# 샘플은 고정 기준일을 쓴다. datetime.now() 를 쓰면 실행할 때마다 regDt 가 바뀌어
+# content_hash 가 달라지고, 재수집이 전부 신규로 잡혀 멱등성이 깨진다.
+# 날짜를 새로 하고 싶으면 reference 를 명시적으로 바꾼다 — 사고가 아니라 선택이어야 한다.
+SAMPLE_EPOCH = datetime(2026, 9, 15, tzinfo=UTC)
+
 
 def _has_batchim(ch: str) -> bool:
     """받침 유무. 조사 선택에 쓴다."""
@@ -99,10 +104,12 @@ class SampleCollector(JobCollector):
         total: int = 2500,
         seed: int = 42,
         budget: CallBudget | None = None,
+        reference: datetime | None = None,
     ) -> None:
         super().__init__(budget)
         self._total = total
         self._seed = seed
+        self._reference = reference or SAMPLE_EPOCH
         self._truth: dict[str, GroundTruth] = {}
 
     # ---- 공개 API ---------------------------------------------------------
@@ -161,8 +168,8 @@ class SampleCollector(JobCollector):
 
         career, exp_raw = _career(rng, v)
         sal_tp, sal_raw, sal_min, sal_max = _salary(rng, v)
-        close_dt = _deadline(rng, v)
-        posted = datetime.now(UTC) - timedelta(days=rng.randrange(0, 60))
+        close_dt = _deadline(rng, v, self._reference)
+        posted = self._reference - timedelta(days=rng.randrange(0, 60))
 
         job_cont, said_in_body = _job_content(rng, v, role, company, required, skills)
         # 5~10% 는 본문이 비어 있다. 실데이터에도 이런 공고가 있다.
@@ -328,9 +335,9 @@ def _salary(rng: random.Random, v: dict[str, Any]) -> tuple[str, str, int | None
     return "연봉", text, lo * 10_000, None
 
 
-def _deadline(rng: random.Random, v: dict[str, Any]) -> str:
+def _deadline(rng: random.Random, v: dict[str, Any], reference: datetime) -> str:
     form = _weighted(rng, v["deadline_forms"])
-    d = datetime.now(UTC) + timedelta(days=rng.randrange(1, 90))
+    d = reference + timedelta(days=rng.randrange(1, 90))
     return str(rng.choice(form["text"])).format(y=d.year, m=f"{d.month:02d}", d=f"{d.day:02d}")
 
 
