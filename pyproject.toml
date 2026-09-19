@@ -16,6 +16,8 @@ dependencies = [
     "alembic>=1.13",
     # Cache / Queue
     "redis>=5.0",
+    # Data processing
+    "polars>=1.0",
     # Config / data files
     "pyyaml>=6.0",
     # Logging

@@ -69,8 +69,8 @@
 | 1.2 | ✅ Alembic 0002~0004 (raw, companies, jobs, skills, job_skills) | 마이그레이션 |
 | 1.3 | Collector: 소스 중립 인터페이스 + 사람인 구현, 재시도, **일 500회 예산 관리**, content_hash | `src/jobfit/collectors/{base,saramin}.py` |
 | 1.4 | Celery 앱 + Redis 브로커 + Beat 스케줄 (매일 06:00 KST) | `src/jobfit/worker/` |
-| 1.5 | Normalizer: Polars 변환 (경력/급여/학력/지역/마감 파싱) | `src/jobfit/processing/normalize.py` |
-| 1.6 | 섹션 분리 (주요업무/자격요건/우대사항) | `processing/sections.py` |
+| 1.5 | ✅ Normalizer: 파서(순수함수) + Polars 변환 + 적재 | `processing/{parse,normalize,loader}.py` |
+| 1.6 | ✅ 섹션 분리 → **필드 매핑으로 축소** (소스가 이미 나눠서 줌) | `normalize.py` 내 `flatten_detail` |
 | 1.7 | 스킬 사전 구축 (IT 200~300개 + 별칭) | `data/skills_seed.yaml` |
 | 1.8 | 스킬 추출기 v1 (사전+정규식, 필수/우대 구분) | `src/jobfit/skills/extractor.py` |
 | 1.9 | 파싱 단위 테스트 (엣지케이스 30개+) | `tests/test_normalize.py` |
